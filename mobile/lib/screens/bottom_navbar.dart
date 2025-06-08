@@ -5,10 +5,10 @@ class BottomNavbar extends StatefulWidget {
   final Function(int) onTap;
 
   const BottomNavbar({
-    Key? key,
+    super.key,
     required this.currentIndex,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   State<BottomNavbar> createState() => _BottomNavbarState();
@@ -24,7 +24,7 @@ class _BottomNavbarState extends State<BottomNavbar> {
       unselectedItemColor: Colors.black, // Optional: set unselected color
       items: const [
         BottomNavigationBarItem(
-          icon: Icon(Icons.home),
+          icon: Icon(Icons.home_outlined),
           label: 'Home',
         ),
         BottomNavigationBarItem(
@@ -32,7 +32,7 @@ class _BottomNavbarState extends State<BottomNavbar> {
           label: 'Schedule',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.stacked_bar_chart_outlined),
+          icon: Icon(Icons.bar_chart_outlined),
           label: 'Grades',
         ),
         BottomNavigationBarItem(
