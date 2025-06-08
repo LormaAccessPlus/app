@@ -18,10 +18,7 @@ class MyHomePage extends StatelessWidget {
         backgroundColor: const Color(0xFF08695A),
         title: Row(
           children: [
-            Image.asset(
-              'assets/images/Lorma_access+_logo.png',
-              height: 40,
-            ),
+       
             const SizedBox(width: 10),
             const Text('Lorma Access Plus'),
           ],
