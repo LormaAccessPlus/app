@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'screens/drawer.dart'; // Import your drawer
+import 'package:mobile/widgets/drawer.dart';
+import 'widgets/bottom_navbar.dart';
 
 void main() {
   runApp(MaterialApp(
