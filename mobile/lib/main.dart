@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
-import 'screens/drawer.dart'; // Import your drawer
+import 'widgets/bottom_navbar.dart';
 
 void main() {
-  runApp(MaterialApp(
-    home: Scaffold(
-      appBar: AppBar(title: Text('Main App')),
-      drawer: AppDrawer(), // Add this line
-      body: Center(child: Text('Imbotido App')),
-    ),
+  runApp(const MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: BottomNavbar(),
   ));
 }
