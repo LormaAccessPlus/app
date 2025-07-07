@@ -23,6 +23,9 @@ class User extends Authenticatable
         'password',
     ];
 
+    protected $table = 'users_old';
+    public $timestamps = false;
+
     /**
      * The attributes that should be hidden for serialization.
      *
