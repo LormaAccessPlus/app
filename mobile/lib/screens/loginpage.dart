@@ -57,7 +57,28 @@ class LoginPage extends StatelessWidget {
                   'Send',
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.white, // Changed text color to white
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            // Test Button
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () {
+                  Navigator.pushReplacementNamed(context, '/home');
+                },
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  side: BorderSide(color: Colors.teal),
+                ),
+                child: const Text(
+                  'Test',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.teal,
                   ),
                 ),
               ),
