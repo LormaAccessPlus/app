@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'profile_screen.dart'; // Add this import
 import 'schedule_screen.dart'; // Corrected import path for ScheduleScreen
+import 'checklist_screen.dart'; // Import for ChecklistScreen
+import 'grades_screen.dart'; // Make sure this import is present
+import 'absences_screen.dart';
+import 'account_settings_screen.dart';
+import 'classmates_screen.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -11,10 +16,10 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
   static final List<Widget> _pages = <Widget>[
-    HomeContent(), // <-- Use the new HomeContent widget here
-    ScheduleScreen(), // <-- This shows your schedule screen
-    Center(child: Text('Grades Page')),
-    ProfileScreen(),
+    HomeContent(),         // Home tab
+    ScheduleScreen(),      // Schedule tab
+    GradesScreen(),        // Grades tab
+    ProfileScreen(),       // Profile tab
   ];
 
   void _onItemTapped(int index) {
@@ -26,10 +31,9 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _selectedIndex == 3
+      appBar: _selectedIndex == 4
           ? null
           : AppBar(
-              title: Text('Home Page'),
             ),
       drawer: Drawer(
         backgroundColor: Color(0xFFF9FAFB),
@@ -62,6 +66,10 @@ class _HomePageState extends State<HomePage> {
               title: 'Absences',
               onTap: () {
                 Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AbsencesScreen()),
+                );
               },
             ),
             HoverListTile(
@@ -69,13 +77,18 @@ class _HomePageState extends State<HomePage> {
               title: 'Classmates',
               onTap: () {
                 Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ClassmatesScreen()),
+                );
               },
             ),
             HoverListTile(
               icon: Icons.book,
               title: 'Ledger',
               onTap: () {
-                Navigator.pop(context);
+                Navigator.pop(context); // Close the drawer
+                Navigator.pushNamed(context, '/ledger'); // Navigate to Ledger page
               },
             ),
             HoverListTile(
@@ -83,6 +96,10 @@ class _HomePageState extends State<HomePage> {
               title: 'Checklist',
               onTap: () {
                 Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ChecklistScreen()),
+                );
               },
             ),
             // Add a vertical line (Divider) below Checklist
@@ -97,6 +114,10 @@ class _HomePageState extends State<HomePage> {
               title: 'Account Settings',
               onTap: () {
                 Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AccountSettingsScreen()),
+                );
               },
             ),
             HoverListTile(

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'screens/loginpage.dart';
 import 'screens/homepage.dart';
+import 'screens/loginpage.dart';
+import 'screens/ledger_screen.dart';
 
 void main() {
   runApp(MaterialApp(
+    home: HomePage(),
     debugShowCheckedModeBanner: false,
-    initialRoute: '/',
     routes: {
-      '/': (context) => LoginPage(),
-      '/home': (context) => HomePage(),
+      '/ledger': (context) => LedgerScreen(),
     },
   ));
 }
