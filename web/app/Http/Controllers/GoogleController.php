@@ -1,46 +1,48 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Auth;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class GoogleController extends Controller
 {
-    public function redirectToGoogle()
-    {
-        return Socialite::driver('google')
-            ->stateless()
-            ->with([
-                'prompt' => 'select_account login', // force account chooser + password
-            ])
-            ->redirect();
-    }
-
-    public function handleGoogleCallback()
+    public function loginWithGoogle(Request $request)
     {
         try {
-            $googleUser = Socialite::driver('google')->stateless()->user();
+            // Flutter will send the "accessToken"
+            $token = $request->input('token');
 
-            // Check if user already exists
-            $user = User::where('email', $googleUser->getEmail())->first();
+            // Verify with Google
+            $googleUser = Socialite::driver('google')->stateless()->userFromToken($token);
 
-            if (!$user) {
-                $user = User::create([
-                    'name'       => $googleUser->getName(),
-                    'email'      => $googleUser->getEmail(),
-                    'google_id'  => $googleUser->getId(),
-                    'password'   => bcrypt('123456dummy'),
-                ]);
-            }
+            // Find or create local user
+            $user = User::updateOrCreate(
+                ['email' => $googleUser->getEmail()],
+                [
+                    'name' => $googleUser->getName(),
+                    'google_id' => $googleUser->getId(),
+                    'password' => bcrypt(Str::random(16)) // random password since Google login
+                ]
+            );
 
-            Auth::login($user);
+            // Generate Laravel Sanctum token (for Flutter API calls)
+            $apiToken = $user->createToken('auth_token')->plainTextToken;
 
-            return redirect('/home');
+            return response()->json([
+                'status' => 'success',
+                'user' => $user,
+                'token' => $apiToken,
+            ]);
         } catch (\Exception $e) {
-            return redirect('/')->with('error', 'Something went wrong: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], 401);
         }
     }
 }
