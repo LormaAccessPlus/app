@@ -44,5 +44,19 @@ class GoogleController extends Controller
                 'message' => $e->getMessage(),
             ], 401);
         }
+
+        // If user exists and has NO password yet → first-time Google login
+        if (!$user->password) {
+            session(['email' => $user->email]);
+            return redirect()->route('set-password');
+        }
+
+        // If user exists AND has a password → redirect to login form
+        return redirect()->route('login')->with('email', $user->email);
+
+    } catch (\Exception $e) {
+        return redirect('/')->with('error', 'Something went wrong: ' . $e->getMessage());
     }
+}
+
 }
