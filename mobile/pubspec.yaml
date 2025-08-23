@@ -15,10 +15,10 @@ dependencies:
   cupertino_icons: ^1.0.8
 
   # Google Sign-In
-  google_sign_in: ^6.1.0
+  google_sign_in: ^6.2.1
 
   # HTTP requests
-  http: ^1.1.0
+  http: ^1.2.1
 
   # Secure storage for tokens
   flutter_secure_storage: ^9.0.0

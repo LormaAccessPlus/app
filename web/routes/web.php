@@ -2,7 +2,8 @@
 // require __DIR__.'/auth.php';
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\GoogleController;
+
+use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\SetPasswordController;
 
@@ -12,11 +13,11 @@ use Illuminate\Support\Facades\Auth;
 // Landing page (login)
 Route::get('/', function () {
     return view('login');
-})->name('login');
+});
 
 // Google Auth
-Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])->name('google.login');
-Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback'])->name('google.callback');
+Route::get('/auth/google', [GoogleAuthController::class, 'redirectToGoogle'])->name('google.login');
+Route::get('/auth/google/callback', [GoogleAuthController::class, 'handleGoogleCallback'])->name('google.callback');
 
 
 

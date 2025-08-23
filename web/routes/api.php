@@ -2,23 +2,23 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\GoogleController;
-use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Auth\GoogleAuthController;
 
-Route::post('/google-login', [GoogleController::class, 'loginWithGoogle']);
-
-
-Route::get('/test', function() {
+// Test route
+Route::get('/test', function () {
     return response()->json(['message' => 'API is working']);
 });
 
-// Google login for mobile
-Route::post('/google-login', [GoogleController::class, 'loginWithGoogle']);
+// Flutter Google login
+Route::post('google-login', [GoogleAuthController::class, 'googleLogin']);
 
-
+// Protected route
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function(Request $request) {
-        return $request->user();
+        return response()->json([
+            'id' => $request->user()->id,
+            'name' => $request->user()->name,
+            'email' => $request->user()->email,
+        ]);
     });
-
 });

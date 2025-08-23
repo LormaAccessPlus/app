@@ -10,11 +10,11 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-{
-    Schema::table('users', function (Blueprint $table) {
-        $table->string('google_id')->nullable()->after('email')->unique();
-    });
-}
+    {
+        Schema::table('users', function (Blueprint $table) {
+            //
+        });
+    }
 
     /**
      * Reverse the migrations.
