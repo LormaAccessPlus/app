@@ -1,27 +1,52 @@
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'google_login_page.dart';
 
-class HomePage extends StatelessWidget {
-  final storage = FlutterSecureStorage();
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
 
-  Future<void> _logout(BuildContext context) async {
-    await storage.delete(key: 'token'); // clear saved token
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => GoogleLoginPage()),
+class _HomePageState extends State<HomePage> {
+  final _storage = const FlutterSecureStorage();
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+
+  Future<void> _confirmLogout() async {
+    final should = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Confirm logout'),
+        content: const Text('Are you sure you want to logout?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Logout')),
+        ],
+      ),
     );
+
+    if (should == true) {
+      // sign out from Google, clear stored token and navigate to login
+      try {
+        await _googleSignIn.signOut();
+      } catch (_) {}
+      await _storage.delete(key: 'token');
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => GoogleLoginPage()),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Home"),
+        title: const Text('My Classrooms'),
         actions: [
           IconButton(
-            icon: Icon(Icons.logout),
-            onPressed: () => _logout(context),
+            icon: const Icon(Icons.logout),
+            onPressed: _confirmLogout,
           ),
         ],
       ),
