@@ -18,7 +18,7 @@ class _GoogleLoginPageState extends State<GoogleLoginPage> {
     scopes: ['email', 'profile'],
   );
 
-  final storage = FlutterSecureStorage();
+  final storage = const FlutterSecureStorage();
   bool _loading = false;
 
   Future<void> _handleGoogleSignIn() async {
@@ -61,14 +61,16 @@ class _GoogleLoginPageState extends State<GoogleLoginPage> {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final token = data['token'];
+        final userName = data['user_name']; // <-- get user name
 
-        // Save token securely
+        // Save token and user name securely
         await storage.write(key: 'token', value: token);
+        await storage.write(key: 'user_name', value: userName); // <-- save name
 
         // ✅ Navigate to HomePage
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => HomePage()),
+          MaterialPageRoute(builder: (_) => const HomePage()),
         );
       } else {
         print("Login failed: ${response.body}");
