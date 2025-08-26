@@ -2,15 +2,17 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\IdLoginController;
 use App\Http\Controllers\Auth\GoogleAuthController;
+use App\Http\Controllers\Api\GradesController;
 
 // Test route
 Route::get('/test', function () {
     return response()->json(['message' => 'API is working']);
 });
 
-// Flutter Google login
-Route::post('google-login', [GoogleAuthController::class, 'googleLogin']);
+// ID Login
+Route::post('/login', [IdLoginController::class, 'login']); // mobile ID/password login
 
 // Protected route
 Route::middleware('auth:sanctum')->group(function () {
@@ -22,3 +24,5 @@ Route::middleware('auth:sanctum')->group(function () {
         ]);
     });
 });
+
+Route::get('grades', [GradesController::class, 'index']);

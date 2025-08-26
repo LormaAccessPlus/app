@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
 import 'home_page.dart';
 
 class GoogleLoginPage extends StatefulWidget {
+  const GoogleLoginPage({super.key});
+
   @override
   _GoogleLoginPageState createState() => _GoogleLoginPageState();
 }
@@ -18,7 +20,7 @@ class _GoogleLoginPageState extends State<GoogleLoginPage> {
     scopes: ['email', 'profile'],
   );
 
-  final storage = const FlutterSecureStorage();
+  final _storage = const FlutterSecureStorage();
   bool _loading = false;
 
   Future<void> _handleGoogleSignIn() async {
@@ -35,43 +37,40 @@ class _GoogleLoginPageState extends State<GoogleLoginPage> {
 
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
-      final idToken = googleAuth.idToken;
-      print('idToken: $idToken');
+      final serverAuthCode = googleAuth.serverAuthCode;
+      print('serverAuthCode: $serverAuthCode');
 
-      if (idToken == null) {
+      if (serverAuthCode == null) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text("Failed to get idToken")));
+        ).showSnackBar(SnackBar(content: Text("Failed to get serverAuthCode")));
         setState(() => _loading = false);
         return;
       }
 
-      // ✅ FIX: Send "token" instead of "id_token"
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8000/api/google-login'),
+        Uri.parse('http://192.168.1.50:8000/api/google-login'),
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json', // <-- add this
+          'Accept': 'application/json',
         },
-        body: jsonEncode({'id_token': idToken}),
+        body: jsonEncode({'server_auth_code': serverAuthCode}),
       );
-      print('API status: ${response.statusCode}');
-      print('API body: ${response.body}');
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final token = data['token'];
-        final userName = data['user_name']; // <-- get user name
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        final apiToken = body['token'] as String?;
+        final user = body['user'] as Map<String, dynamic>?;
 
-        // Save token and user name securely
-        await storage.write(key: 'token', value: token);
-        await storage.write(key: 'user_name', value: userName); // <-- save name
+        if (apiToken != null) await _storage.write(key: 'token', value: apiToken);
+        if (user != null) {
+          if (user['name'] != null) await _storage.write(key: 'user_name', value: user['name'].toString());
+          if (user['id'] != null) await _storage.write(key: 'user_id', value: user['id'].toString());
+          if (user['student_id'] != null) await _storage.write(key: 'student_id', value: user['student_id'].toString()); // <-- store DB id
+        }
 
-        // ✅ Navigate to HomePage
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const HomePage()),
-        );
+        // navigate after storing
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomePage()));
       } else {
         print("Login failed: ${response.body}");
         ScaffoldMessenger.of(
