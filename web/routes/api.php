@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\IdLoginController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Api\GradesController;
 use App\Http\Controllers\LedgerController;
+use App\Http\Controllers\ChecklistController;
 
 // Test route
 Route::get('/test', function () {
@@ -28,4 +29,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::get('grades', [GradesController::class, 'index']);
 Route::get('/ledger/{student_id}', [LedgerController::class, 'getLedger']);
-`
+Route::get('studsubjfeealignment/{studid}', [ChecklistController::class, 'forStudent']);
+Route::get('studsubjfeealignment', [ChecklistController::class, 'forStudent']); // accepts ?student_id=...
+
