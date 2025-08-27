@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\IdLoginController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Api\GradesController;
+use App\Http\Controllers\LedgerController;
 
 // Test route
 Route::get('/test', function () {
@@ -26,3 +27,5 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::get('grades', [GradesController::class, 'index']);
+Route::get('/ledger/{student_id}', [LedgerController::class, 'getLedger']);
+`

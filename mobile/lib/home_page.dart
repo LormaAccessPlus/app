@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'profile_page.dart';
 import 'grades_page.dart';
+import 'schedule_page.dart'; // { changed code }
+import 'ledger_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -645,12 +647,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _schedulePage() => const Center(
-    child: Text(
-      'Schedule page - implement your schedule UI',
-      style: TextStyle(fontSize: 16),
-    ),
-  );
+  Widget _schedulePage() => const SchedulePage(); // { changed code }
   Widget _gradesPage() {
     return const GradesPage();
   }
@@ -783,7 +780,9 @@ class _HomePageState extends State<HomePage> {
                       title: const Text('Ledger'),
                       onTap: () {
                         Navigator.of(context).pop();
-                        // TODO: navigate to Ledger page
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const LedgerPage()),
+                        );
                       },
                     ),
                     ListTile(
