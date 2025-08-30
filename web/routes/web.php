@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\SetPasswordController;
+use App\Http\Controllers\AnnouncementsController;
+use App\Http\Controllers\HomeController;
 
 
 use Illuminate\Support\Facades\Auth;
@@ -32,9 +34,15 @@ Route::post('/login', [LoginController::class, 'login'])->name('login.post');
 
 
 
-Route::get('/home', function() {
-    return view('home');
-})->middleware('auth');
+Route::middleware('auth')->get('/home', [HomeController::class, 'index'])->name('home');
+
+// show announcements list (web)
+Route::middleware('auth')->group(function () {
+    Route::get('/announcements', [AnnouncementsController::class, 'index'])->name('announcements.index');
+    Route::get('/announcements/create', [AnnouncementsController::class, 'create'])->name('announcements.create');
+    Route::post('/announcements', [AnnouncementsController::class, 'store'])->name('announcements.store');
+});
+
 // Logout
 Route::get('/logout', function () {
     Auth::logout();

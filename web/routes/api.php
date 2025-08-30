@@ -6,7 +6,10 @@ use App\Http\Controllers\Auth\IdLoginController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Api\GradesController;
 use App\Http\Controllers\ChecklistController;
-use App\Http\Controllers\AbsencesController; // { changed code }
+use App\Http\Controllers\AbsencesController;
+use App\Http\Controllers\AnnouncementsController;
+
+Route::get('announcements', [AnnouncementsController::class, 'apiIndex']);
 
 // Test route
 Route::get('/test', function () {

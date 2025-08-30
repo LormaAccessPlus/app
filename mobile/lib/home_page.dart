@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'profile_page.dart';
 import 'grades_page.dart';
 import 'schedule_page.dart'; // { changed code }
@@ -23,10 +23,10 @@ class _HomePageState extends State<HomePage> {
 
   // primary color (hex 08695A) and light variants used for visuals
   final Color primaryColor = const Color(0xFF08695A);
-  final Color primary50 = const Color(0xFF08695A).withOpacity(0.06);
-  final Color primary100 = const Color(0xFF08695A).withOpacity(0.12);
-  final Color primary200 = const Color(0xFF08695A).withOpacity(0.18);
-  final Color primary400 = const Color(0xFF08695A).withOpacity(0.40);
+
+  // { changed code } - announcements state
+  List<Map<String, dynamic>> announcements = [];
+  bool isLoadingAnnouncements = false;
 
   // auth form
   final _formKey = GlobalKey<FormState>();
@@ -77,11 +77,14 @@ class _HomePageState extends State<HomePage> {
           'The Final Examination schedule for spring 2025 has been posted. Please check your personal schedule',
     },
   ];
+  
+  get primary400 => null;
 
   @override
   void initState() {
     super.initState();
     _checkSavedAuth();
+    _loadAnnouncements(); // fetch announcements on start
   }
 
   Future<void> _checkSavedAuth() async {
@@ -644,6 +647,11 @@ class _HomePageState extends State<HomePage> {
               }).toList(),
             ),
           ),
+          // { changed code } - announcements list
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: _announcementsWidget(),
+          ),
         ],
       ),
     );
@@ -681,6 +689,113 @@ class _HomePageState extends State<HomePage> {
       Navigator.of(context).pop(); // close drawer
       _logout();
     }
+  }
+
+  Future<List<Map<String,dynamic>>> fetchAnnouncements() async {
+    final url = Uri.parse('http://10.0.2.2:8000/api/announcements');
+    final resp = await http.get(url);
+    if (resp.statusCode != 200) throw Exception('Failed to load');
+    final List data = jsonDecode(resp.body) as List;
+    return data.map((e) => Map<String,dynamic>.from(e as Map)).toList();
+  }
+
+  // Example usage in a widget (very small)
+  void _loadAndShowAnnouncements(BuildContext context) async {
+    try {
+      final items = await fetchAnnouncements();
+      showModalBottomSheet(context: context, builder: (_) {
+        return ListView.builder(
+          itemCount: items.length,
+          itemBuilder: (_, i) {
+            final a = items[i];
+            return ListTile(
+              title: Text(a['title'] ?? ''),
+              subtitle: Text(a['body'] ?? ''),
+              trailing: Text(a['published_at'] != null ? a['published_at'].toString().split('T').first : ''),
+            );
+          },
+        );
+      });
+    } catch (e) {
+      print('ann fetch error: $e');
+    }
+  }
+
+  Future<void> _loadAnnouncements() async {
+    setState(() => isLoadingAnnouncements = true);
+    try {
+      final url = Uri.parse('$apiBase/api/announcements');
+      final resp = await http.get(url);
+      // debug
+      print('announcements url: $url');
+      print('announcements status: ${resp.statusCode}');
+      if (resp.statusCode == 200) {
+        final payload = jsonDecode(resp.body);
+        final List<dynamic> data = payload is List ? payload : (payload['data'] ?? []);
+        announcements = data.map<Map<String, dynamic>>((e) {
+          final m = Map<String, dynamic>.from(e as Map);
+          m['title'] = m['title'] ?? m['Title'] ?? '';
+          m['body'] = m['body'] ?? m['Body'] ?? '';
+          m['published_at'] = m['published_at'] ?? m['publishedAt'] ?? m['published_at'] ?? null;
+          m['pinned'] = m['pinned'] ?? false;
+          return m;
+        }).toList();
+      } else {
+        announcements = [];
+      }
+    } catch (e, st) {
+      print('loadAnnouncements error: $e\n$st');
+      announcements = [];
+    } finally {
+      setState(() => isLoadingAnnouncements = false);
+    }
+  }
+
+  // { changed code } - small helper widget for announcements list
+  Widget _announcementsWidget() {
+    if (isLoadingAnnouncements) {
+      return const Center(child: SizedBox(height: 48, width: 48, child: CircularProgressIndicator()));
+    }
+    if (announcements.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 12.0),
+        child: Text('No announcements', style: TextStyle(color: Colors.black54)),
+      );
+    }
+    // show up to 3 items like your design
+    final items = announcements.take(3).toList();
+    return Column(
+      children: items.map((a) {
+        final title = a['title'] ?? '';
+        final body = a['body'] ?? '';
+        final pub = a['published_at'] != null ? a['published_at'].toString().split(' ')[0] : '';
+        return Card(
+          margin: const EdgeInsets.symmetric(vertical: 8),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Row(
+              children: [
+                Container(width: 6, height: 56, decoration: BoxDecoration(color: primaryColor.withOpacity(0.12), borderRadius: BorderRadius.circular(6))),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 6),
+                      Text(body, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.black87)),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(pub, style: const TextStyle(color: Colors.black45, fontSize: 12)),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
+    );
   }
 
   @override
