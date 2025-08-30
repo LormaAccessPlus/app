@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
+use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
 
 class GoogleAuthController extends Controller
@@ -139,6 +139,62 @@ class GoogleAuthController extends Controller
         } catch (\Throwable $e) {
             Log::error('Google login error: '.$e->getMessage());
             return response()->json(['status' => 'error', 'message' => 'Server error'], 500);
+        }
+    }
+
+    /**
+     * Redirect the user to Google for authentication.
+     */
+    public function redirectToGoogle()
+    {
+        return Socialite::driver('google')->redirect();
+    }
+
+    /**
+     * Handle callback from Google.
+     */
+    public function handleGoogleCallback(Request $request)
+    {
+        try {
+            // Use stateless() if you are using API clients or have session issues
+            $googleUser = Socialite::driver('google')->stateless()->user();
+
+            // Debug/log user info (remove in production)
+            Log::info('Google callback user: ' . json_encode([
+                'id' => $googleUser->getId(),
+                'name' => $googleUser->getName(),
+                'email' => $googleUser->getEmail(),
+                'avatar' => $googleUser->getAvatar(),
+            ]));
+
+            $email = $googleUser->getEmail();
+            if (! $email) {
+                return redirect('/')->with('error', 'No email returned from Google.');
+            }
+
+            // enforce lorma.edu domain
+            $allowedDomain = 'lorma.edu';
+            $domain = substr(strrchr($email, "@"), 1);
+            if (strtolower($domain) !== strtolower($allowedDomain)) {
+                return redirect('/')->with('error', 'Please sign in with your lorma.edu account.');
+            }
+
+            // find or create local user
+            $user = User::firstOrCreate(
+                ['email' => $email],
+                [
+                    'name' => $googleUser->getName() ?? $email,
+                    // set unusable password (required field) — user uses Google SSO
+                    'password' => Hash::make(Str::random(32)),
+                ]
+            );
+
+            Auth::login($user, true);
+
+            return redirect('/home');
+        } catch (\Throwable $e) {
+            Log::error('Google auth error: ' . $e->getMessage());
+            return redirect('/')->with('error', 'Google authentication failed.');
         }
     }
 }

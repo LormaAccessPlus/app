@@ -4,32 +4,35 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
 class SetPasswordController extends Controller
 {
     // Show the set password form
-    public function showSetPasswordForm()
+    public function showSetPasswordForm(Request $request)
     {
-        return view('auth.set-password');
+        // show form (email may be in session or query)
+        return view('auth.login', [
+            'email' => $request->query('email', session('email')),
+        ]);
     }
 
     // Handle saving the password
     public function setPassword(Request $request)
     {
-        $request->validate([
+        $data = $request->validate([
             'email' => 'required|email|exists:users,email',
-            'password' => 'required|min:6|confirmed',
+            'password' => 'required|string|min:8|confirmed',
         ]);
 
-       $user = User::where('email', $request->email)->first();
-       $user->password = Hash::make($request->password);
-       $user->save();
+        $user = User::where('email', $data['email'])->firstOrFail();
+        $user->password = Hash::make($data['password']);
+        $user->save();
 
         Auth::login($user);
 
-        return redirect('/home')->with('success', 'Password set successfully! You are now logged in.');
+        return redirect('/home')->with('success', 'Password set and logged in.');
     }
 }

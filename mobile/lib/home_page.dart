@@ -7,6 +7,7 @@ import 'grades_page.dart';
 import 'schedule_page.dart'; // { changed code }
 import 'ledger_page.dart';
 import 'checklist_page.dart'; // { changed code }
+import 'absences_page.dart'; // added
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -765,7 +766,9 @@ class _HomePageState extends State<HomePage> {
                       title: const Text('Absences'),
                       onTap: () {
                         Navigator.of(context).pop();
-                        // TODO: navigate to Absences page
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const AbsencesPage()),
+                        );
                       },
                     ),
                     ListTile(

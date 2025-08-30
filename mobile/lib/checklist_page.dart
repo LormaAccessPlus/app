@@ -265,7 +265,7 @@ class _ChecklistPageState extends State<ChecklistPage> {
                           ],
                         ),
                       );
-                    }).toList(),
+                    }),
                 ],
               ),
             ),

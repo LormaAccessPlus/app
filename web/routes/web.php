@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Auth;
 
 // Landing page (login)
 Route::get('/', function () {
+    if (Auth::check()) {
+        return redirect('/home');
+    }
     return view('login');
 });
 
