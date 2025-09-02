@@ -21,9 +21,13 @@ Route::get('/', function () {
 });
 
 // Google Auth
-Route::get('/auth/google', [GoogleAuthController::class, 'redirectToGoogle'])->name('google.login');
-Route::get('/auth/google/callback', [GoogleAuthController::class, 'handleGoogleCallback'])->name('google.callback');
+Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirectToGoogle'])->name('auth.google.redirect');
+Route::get('/auth/google/callback', [GoogleAuthController::class, 'handleGoogleCallback'])->name('auth.google.callback');
 
+// Alias for legacy references that call route('google.login')
+Route::get('/auth/google/login', function () {
+    return redirect()->route('auth.google.redirect');
+})->name('google.login');
 
 
 Route::get('/set-password', [SetPasswordController::class, 'showSetPasswordForm'])->name('set-password');
@@ -48,3 +52,5 @@ Route::get('/logout', function () {
     Auth::logout();
     return redirect('/');
 })->name('logout');
+
+Route::middleware('auth')->get('/classroom/courses', [GoogleAuthController::class, 'showClassroomCourses'])->name('classroom.courses');

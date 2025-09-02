@@ -4,10 +4,22 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
+    use AuthenticatesUsers;
+
+    // simple redirect target after login
+    protected $redirectTo = '/home';
+
+    // always redirect to /home (do NOT use intended here)
+    protected function authenticated(Request $request, $user)
+    {
+        return redirect()->route('home');
+    }
+
     public function showLoginForm(Request $request)
     {
         $email = $request->session()->get('email', '');

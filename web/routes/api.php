@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\GradesController;
 use App\Http\Controllers\ChecklistController;
 use App\Http\Controllers\AbsencesController;
 use App\Http\Controllers\AnnouncementsController;
+use App\Http\Controllers\Api\StudentApiController;
 
 Route::get('announcements', [AnnouncementsController::class, 'apiIndex']);
 
@@ -37,4 +38,9 @@ Route::get('ledger/{studid}', [ChecklistController::class, 'forStudent']);
 
 // route now points to the new AbsencesController
 Route::get('absences/{studid}', [AbsencesController::class, 'forStudent']);
+
+Route::get('/studsubjfeealignment/{student_id}', [StudentApiController::class, 'showByStudent']);
+Route::get('/studsubjfeealignment', [StudentApiController::class, 'showByQuery']);
+
+Route::get('/classroom/courses', [GoogleAuthController::class, 'getClassroomCoursesApi']);
 

@@ -56,7 +56,7 @@
 
         <nav class="nav flex-column">
             <a class="nav-link active" href="{{ url('/home') }}"><i class="bi bi-speedometer2"></i> Dashboard</a>
-            <a class="nav-link" href="{{ url('/classes') }}"><i class="bi bi-journal"></i> Classes</a>
+            <a class="nav-link" href="{{ url('/classroom/courses') }}"><i class="bi bi-journal"></i> Classes</a>
             <a class="nav-link" href="{{ url('/grade-sync') }}"><i class="bi bi-arrow-repeat"></i> Grade Sync</a>
             <a class="nav-link" href="{{ url('/profile') }}"><i class="bi bi-person"></i> Profile</a>
             <a class="nav-link mt-3 text-danger" href="{{ route('logout') }}">Logout</a>
