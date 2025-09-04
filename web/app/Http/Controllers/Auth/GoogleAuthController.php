@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use App\Models\User;
 use Carbon\Carbon;
+use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Support\Str;
 
 class GoogleAuthController extends Controller
 {
@@ -159,29 +161,66 @@ class GoogleAuthController extends Controller
     /**
      * Handle callback from Google.
      */
-    public function handleGoogleCallback()
+    public function handleGoogleCallback(Request $request)
     {
-        // For web flows prefer stateful Socialite (remove ->stateless() unless necessary)
-        $socialUser = Socialite::driver('google')->user();
+        try {
+            $code = $request->query('code');
+            $idToken = $request->input('id_token') ?? $request->query('id_token');
 
-        $user = User::firstOrCreate(
-            ['email' => $socialUser->getEmail()],
-            [
-                'name' => $socialUser->getName() ?? $socialUser->getEmail(),
-                'password' => bcrypt(Str::random(40)),
-            ]
-        );
+            // CASE A: authorization code flow -> let Socialite exchange the code
+            if ($code) {
+                $socialUser = Socialite::driver('google')->stateless()->user();
 
-        // Save refresh token if present
-        if (! empty($socialUser->refreshToken)) {
-            $user->forceFill(['google_refresh_token' => $socialUser->refreshToken])->save();
+                $user = User::firstOrCreate(
+                    ['email' => $socialUser->getEmail()],
+                    [
+                        'name' => $socialUser->getName() ?? $socialUser->getEmail(),
+                        'password' => bcrypt(Str::random(40)),
+                    ]
+                );
+
+                if (! empty($socialUser->refreshToken)) {
+                    $user->forceFill(['google_refresh_token' => $socialUser->refreshToken])->save();
+                }
+
+                Auth::login($user, true);
+                return redirect()->route('home');
+            }
+
+            // CASE B: id_token was returned (implicit / token-only flow) -> verify id_token
+            if ($idToken) {
+                $verify = Http::get('https://oauth2.googleapis.com/tokeninfo', ['id_token' => $idToken]);
+                if ($verify->failed()) {
+                    Log::warning('Google id_token verification failed: '.$verify->body());
+                    return redirect()->route('login')->with('error', 'Invalid id_token from provider.');
+                }
+
+                $payload = $verify->json();
+                $email = $payload['email'] ?? null;
+                if (! $email) {
+                    return redirect()->route('login')->with('error', 'No email in Google token.');
+                }
+
+                $user = User::firstOrCreate(
+                    ['email' => $email],
+                    [
+                        'name' => $payload['name'] ?? $email,
+                        'password' => bcrypt(Str::random(40)),
+                    ]
+                );
+
+                // Note: id_token flow does not include refresh_token.
+                Auth::login($user, true);
+                return redirect()->route('home');
+            }
+
+            // Neither code nor id_token present
+            Log::warning('Google callback missing code and id_token', $request->all());
+            return redirect()->route('login')->with('error', 'Missing code or id_token from Google.');
+        } catch (\Throwable $e) {
+            Log::error('Google callback error: '.$e->getMessage());
+            return redirect()->route('login')->with('error', 'Authentication failed.');
         }
-
-        // Log the user into the session
-        Auth::login($user, true);
-
-        // Redirect to home instead of classroom.courses
-        return redirect()->route('home');
     }
 
     /**

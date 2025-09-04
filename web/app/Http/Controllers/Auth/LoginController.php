@@ -4,42 +4,51 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
-    use AuthenticatesUsers;
-
-    // simple redirect target after login
-    protected $redirectTo = '/home';
-
-    // always redirect to /home (do NOT use intended here)
-    protected function authenticated(Request $request, $user)
+    public function __construct()
     {
-        return redirect()->route('home');
+        // only guests may see login, allow logout for authenticated users
+        $this->middleware('guest')->except('logout');
     }
 
+    // show login form
     public function showLoginForm(Request $request)
     {
         $email = $request->session()->get('email', '');
         return view('auth.login', compact('email'));
     }
 
+    // perform login
     public function login(Request $request)
     {
-        $credentials = $request->validate([
+        $data = $request->validate([
             'email' => 'required|email',
-            'password' => 'required',
+            'password' => 'required|string',
+            'remember' => 'nullable|boolean',
         ]);
 
-        if (Auth::attempt($credentials)) {
+        $remember = !empty($data['remember']);
+
+        if (Auth::attempt(['email' => $data['email'], 'password' => $data['password']], $remember)) {
             $request->session()->regenerate();
-            return redirect()->intended('/home');
+            // always redirect to home (ignores "intended")
+            return redirect()->route('home');
         }
 
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',
-        ]);
+        ])->withInput($request->only('email', 'remember'));
+    }
+
+    // logout
+    public function logout(Request $request)
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect()->route('login');
     }
 }
