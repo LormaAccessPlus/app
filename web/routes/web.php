@@ -58,4 +58,9 @@ Route::middleware('auth')->get('/classroom/courses', [GoogleAuthController::clas
 
 Route::middleware(['auth', \App\Http\Middleware\EnsureSuperAdmin::class])->group(function () {
     Route::get('/admin', [AdminController::class, 'index'])->name('admin.index');
-});
+Route::get('/admin/grading-scheme', [App\Http\Controllers\GradingSchemeController::class, 'index'])
+        ->name('grading.scheme');
+  // save grading scheme
+    Route::post('/admin/grading-scheme', [App\Http\Controllers\GradingSchemeController::class, 'store'])
+        ->name('grading.scheme.save');
+    });
