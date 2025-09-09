@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\SetPasswordController;
 use App\Http\Controllers\AnnouncementsController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\AdminController;
 
 
 use Illuminate\Support\Facades\Auth;
@@ -54,3 +55,7 @@ Route::get('/logout', function () {
 })->name('logout');
 
 Route::middleware('auth')->get('/classroom/courses', [GoogleAuthController::class, 'showClassroomCourses'])->name('classroom.courses');
+
+Route::middleware(['auth', \App\Http\Middleware\EnsureSuperAdmin::class])->group(function () {
+    Route::get('/admin', [AdminController::class, 'index'])->name('admin.index');
+});

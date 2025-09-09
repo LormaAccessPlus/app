@@ -6,11 +6,11 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use App\Models\User;
 use Carbon\Carbon;
 use Laravel\Socialite\Facades\Socialite;
-use Illuminate\Support\Str;
 
 class GoogleAuthController extends Controller
 {
@@ -453,5 +453,53 @@ class GoogleAuthController extends Controller
         }, $courses);
 
         return response()->json(['courses' => $parsed], 200);
+    }
+
+    protected function ensureUserFromSocial($socialUser)
+    {
+        $email = $socialUser->getEmail();
+        $hostedDomain = env('GOOGLE_HOSTED_DOMAIN'); // e.g. lorma.edu
+        $superEmail = env('SUPER_ADMIN_EMAIL'); // optional single admin email
+        $superEmailsCsv = env('SUPER_ADMIN_EMAILS'); // optional CSV of admin emails
+
+        $isSuper = false;
+        if ($superEmail && strcasecmp($email, $superEmail) === 0) {
+            $isSuper = true;
+        }
+        if ($superEmailsCsv) {
+            $list = array_map('trim', explode(',', $superEmailsCsv));
+            if (in_array($email, $list, true)) $isSuper = true;
+        }
+        if (! $isSuper && $hostedDomain) {
+            $parts = explode('@', $email);
+            if (count($parts) === 2 && strcasecmp($parts[1], $hostedDomain) === 0) {
+                // Optionally promote everyone from the domain — be careful
+                // Set to true if you want domain-based super admin:
+                // $isSuper = true;
+            }
+        }
+
+        $user = User::firstOrCreate(
+            ['email' => $email],
+            [
+                'name' => $socialUser->getName() ?? $email,
+                'password' => bcrypt(Str::random(40)),
+                'is_super_admin' => $isSuper,
+            ]
+        );
+
+        // If user exists but promotion conditions met, ensure flag is set
+        if ($isSuper && ! $user->is_super_admin) {
+            $user->forceFill(['is_super_admin' => true])->save();
+        }
+
+        // Save refresh token if present
+        if (! empty($socialUser->refreshToken)) {
+            $user->forceFill(['google_refresh_token' => $socialUser->refreshToken])->save();
+        }
+
+        Auth::login($user, true);
+
+        return $user;
     }
 }
